@@ -1,0 +1,28 @@
+user-match-modal:
+  version: 1.x
+  js:
+    js/user-match-modal.js: {}
+  dependencies:
+    - core/jquery # Drupal's jQuery
+    - core/drupal.ajax # Drupal's AJAX framework
+    - core/once
+    - core/drupal.dialog.ajax
+
+user-match-styles:
+  version: 1.x
+  css:
+    theme:
+      css/user-match-styles.css: {}
+  dependencies:
+    - core/jquery
+
+user-match-swipe:
+  version: 1.x
+  js:
+    js/hammer.min.js: {}
+    js/user-match-swipe.js: {}
+  dependencies:
+    - core/jquery
+    - core/drupal
+    - core/once
+    - core/drupal.dialog.ajax

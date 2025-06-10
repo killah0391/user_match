@@ -1,0 +1,7 @@
+services:
+  # Service definition for our UserMatchService
+  user_match.service:
+    # The PHP class that implements the service
+    class: Drupal\user_match\Service\UserMatchService
+    # Arguments passed to the service's constructor (__construct)
+    arguments: ['@database', '@current_user', '@entity_type.manager']

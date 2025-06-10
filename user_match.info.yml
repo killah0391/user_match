@@ -1,0 +1,8 @@
+name: 'User Match'
+type: module
+description: 'Allows users to like or dislike other users to find matches.'
+package: User Match
+core_version_requirement: ^10
+dependencies:
+  - drupal:user
+  - drupal:views

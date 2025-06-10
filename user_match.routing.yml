@@ -1,0 +1,91 @@
+user_match.display_page:
+  path: '/user-match'
+  defaults:
+    _controller: '\Drupal\user_match\Controller\UserMatchController::displayPage'
+    _title: 'Find Matches'
+  requirements:
+    _permission: 'access user match' # Use permission defined earlier
+
+user_match.like_user:
+  path: '/user-match/like/{user_liked}'
+  defaults:
+    _controller: '\Drupal\user_match\Controller\UserMatchController::likeUser'
+  requirements:
+    _permission: 'access user match'
+    user_liked: \d+ # Ensure the parameter is numeric (user ID)
+  options:
+    parameters:
+      user_liked:
+        type: entity:user # Automatically load the User entity
+
+user_match.dislike_user:
+  path: '/user-match/dislike/{user_disliked}'
+  defaults:
+    _controller: '\Drupal\user_match\Controller\UserMatchController::dislikeUser'
+  requirements:
+    _permission: 'access user match'
+    user_disliked: \d+
+  options:
+    parameters:
+      user_disliked:
+        type: entity:user # Automatically load the User entity
+
+user_match.matches_page:
+  path: '/my-matches'
+  defaults:
+    _controller: '\Drupal\user_match\Controller\UserMatchController::displayMatchesPage'
+    _title: 'My Matches'
+  requirements:
+    _permission: 'view user matches'
+
+user_match.user_details_ajax:
+  path: '/user-match/details/{user_to_view}'
+  defaults:
+    _controller: '\Drupal\user_match\Controller\UserMatchController::getUserDetailsAjax'
+    _title: 'User Details' # Title for the modal window
+  requirements:
+    _permission: 'access user match' # Reuse existing permission
+    user_to_view: \d+
+  options:
+    parameters:
+      user_to_view:
+        type: entity:user # Automatically load the User entity
+    # Indicate this is primarily for AJAX requests
+    _custom_request_matcher: ajax_request_matcher
+
+user_match.user_settings_form:
+  path: '/user/{user}/edit/matching'
+  defaults:
+    _form: '\Drupal\user_match\Form\UserMatchSettingsForm'
+    _title: 'Matching Settings' # Page title, not tab title
+  requirements:
+    # Correct access check for user edit sub-pages
+    _entity_access: 'user.update'
+    user: \d+
+  options:
+    parameters:
+      user:
+        type: entity:user
+
+user_match.fetch_next_card:
+  path: '/user-match/fetch-next'
+  defaults:
+    _controller: '\Drupal\user_match\Controller\UserMatchController::fetchNextUserAjax'
+  requirements:
+    _permission: 'access user match'
+    _method: 'POST' # Use POST to send existing UIDs
+  options:
+    # Ensure Drupal treats this as an AJAX-friendly route.
+    _custom_request_matcher: ajax_request_matcher
+
+user_match.privacy_settings:
+  path: '/user/{user}/privacy'
+  defaults:
+    _controller: '\Drupal\user_match\Controller\UserMatchController::privacySettingsFormMode'
+    _title: 'Privacy settings'
+  requirements:
+    _permission: 'access user profiles'
+  options:
+    parameters:
+      user:
+        type: entity:user

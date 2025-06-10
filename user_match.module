@@ -1,0 +1,291 @@
+<?php
+
+/**
+ * @file
+ * Primary module file for the User Match module.
+ *
+ * Defines theme hooks, help text, and potentially alters local tasks.
+ */
+
+use Drupal\Core\Url;
+use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Routing\RouteMatchInterface;
+use Drupal\Core\Routing\RouteMatch; // Needed to create a RouteMatch object
+use Drupal\Core\Menu\LocalTaskDefault; // Needed for creating LocalTask object
+use Drupal\Core\Cache\RefinableCacheableDependencyInterface; // Type hint for $cacheability
+use Drupal\file\Entity\File;
+use Drupal\field\Entity\FieldConfig;
+use Drupal\Core\Entity\EntityTypeInterface;
+
+/**
+ * Implements hook_theme().
+ *
+ * Defines theme hooks used by the module's templates.
+ */
+function user_match_theme($existing, $type, $theme, $path)
+{
+  return [
+    // Theme hook for the main user matching page (/user-match).
+    'user_match_page' => [
+      'variables' => [
+        'potential_match_user' => NULL, // The User object to display.
+        'like_url' => NULL,             // URL for the 'like' action.
+        'dislike_url' => NULL,          // URL for the 'dislike' action.
+        'details_url' => NULL,          // URL for the AJAX details request.
+        'message' => NULL,              // Message (e.g., "No more users").
+      ],
+    ],
+    // Theme hook for the page listing mutual matches (/my-matches).
+    'user_matches_list_page' => [
+      'variables' => [
+        'matches' => [], // Array of matched User objects.
+      ],
+    ],
+    'user_match_page_deck' => [
+      'variables' => [
+        'potential_match_users' => [],
+        'message' => NULL,
+        'details_url' => NULL,
+        'picture_uri' => NULL,
+      ],
+      'template' => 'user-match-page-deck', // Refers to user-match-page-deck.html.twig
+    ],
+    // Theme hook for the content inside the user details modal.
+    'user_match_details_modal' => [
+      'variables' => [
+        'user_profile' => NULL, // The User object for the details view.
+      ],
+    ],
+    'user_match_single_card' => [ // New template
+      'variables' => ['user' => NULL],
+      'template' => 'user-match-single-card',
+    ],
+  ];
+}
+
+/**
+ * Implements hook_query_TAG_alter() for MySQL random sort.
+ *
+ * This hook alters queries tagged with 'random_sort_mysql' and adds
+ * a random ordering specific to MySQL. Used by UserMatchService.
+ */
+function user_match_query_random_sort_mysql_alter($query)
+{
+  $query->orderRandom();
+}
+
+/**
+ * Implements hook_help().
+ *
+ * Provides help text accessible via the Drupal help system.
+ */
+function user_match_help($route_name, RouteMatchInterface $route_match)
+{
+  switch ($route_name) {
+    // Help text for the main module help page.
+    case 'help.page.user_match':
+      return '<p>' . t('The User Match module allows logged-in users to browse other users and indicate whether they like or dislike them. Go to the <a href=":match_url">User Match page</a> to start finding potential matches, view details in a modal, or view your <a href=":matches_list_url">Mutual Matches page</a>.', [
+        ':match_url' => Url::fromRoute('user_match.display_page')->toString(),
+        ':matches_list_url' => Url::fromRoute('user_match.matches_page')->toString(),
+      ]) . '</p>';
+      // Help text specifically for the user matching page.
+    case 'user_match.display_page':
+      return '<p>' . t('View user profiles one by one and click "Like" or "Dislike". Click "View Details" to see more information in a modal.') . '</p>';
+      // Help text specifically for the mutual matches page.
+    case 'user_match.matches_page':
+      return '<p>' . t('This page lists users who you have liked and who have also liked you back.') . '</p>';
+      // Help text specifically for the AJAX details route (less likely to be seen by users).
+    case 'user_match.user_details_ajax':
+      return '<p>' . t('AJAX endpoint to retrieve user details for display in a modal.') . '</p>';
+      // Help text for the settings form route.
+    case 'user_match.user_settings_form':
+      return '<p>' . t('Configure your user matching preferences.') . '</p>';
+  }
+  // Return NULL if the route name doesn't match any specific help text.
+  return NULL;
+}
+
+function user_match_form_alter(&$form, FormStateInterface $form_state, $form_id) {
+  if($form_id == 'user_form') {
+    if(isset($form['field_gender'])) {
+      $form['field_gender']['#required'] = FALSE;
+      $form['field_gender']['#disabled'] = TRUE;
+    }
+    if(\Drupal::currentUser()->hasPermission('administer users')) {
+      $form['field_gender']['#required'] = FALSE;
+      $form['field_gender']['#disabled'] = FALSE;
+  }
+}
+  if (in_array($form_id, ['user_register_form', 'user_form'])) {
+
+    // Ensure the field exists on the form.
+    if (isset($form['field_birthday'])) {
+      // Calculate the date 18 years ago. The 'Y-m-d' format is required for the HTML5 date input's max attribute.
+      $max_date = new \DateTime('-18 years');
+      $max_date_string = $max_date->format('Y-m-d');
+
+      // Add the 'max' attribute to the date widget.
+      // The [0]['value'] part targets the actual date input element within the field structure.
+      $form['field_birthday']['widget'][0]['value']['#attributes']['max'] = $max_date_string;
+    }
+  }
+}
+
+
+// /**
+//  * Implements hook_menu_local_tasks_alter().
+//  *
+//  * Manually adds the 'Matching' tab to the user edit page if it's missing.
+//  * Note: This is often a workaround. Ideally, the .links.task.yml file should work.
+//  */
+// function user_match_menu_local_tasks_alter(&$data, $route_name, RefinableCacheableDependencyInterface &$cacheability)
+// {
+//   // Check if we are on the user edit form page (the base route).
+//   if ($route_name == 'entity.user.edit_form') {
+//     // Define the plugin ID for our new tab. This should be unique.
+//     $plugin_id = 'user_match.user_settings_tab';
+
+//     // Check if the tab isn't already present (e.g., if the .yml file starts working later).
+//     if (!isset($data['tabs'][0][$plugin_id])) {
+
+//       // Get the target route object and the current route match.
+//       $route_provider = \Drupal::service('router.route_provider');
+//       $target_route_name = 'user_match.user_settings_form';
+//       $target_route = $route_provider->getRouteByName($target_route_name);
+//       $current_route_match = \Drupal::routeMatch();
+//       $parameters = $current_route_match->getRawParameters()->all();
+
+//       // Ensure the target route exists and we have the necessary user parameter.
+//       if ($target_route && !empty($parameters['user'])) {
+//         // Manually define the tab properties.
+//         $tab_definition = [
+//           '#theme' => 'menu_local_task', // Standard theme for tabs.
+//           '#link' => [
+//             'title' => t('Matching'), // The text displayed on the tab.
+//             // Generate the URL object for the tab's destination route.
+//             'url' => Url::fromRoute($target_route_name, $parameters),
+//             'localized_options' => [], // Additional options if needed.
+//           ],
+//           // Define base cacheability based on user permissions.
+//           '#cache' => [
+//             'contexts' => ['user.permissions'],
+//             // Add cache tags if the route depends on specific config or entities.
+//             // 'tags' => [],
+//           ],
+//           // Set the weight to position the tab relative to others (optional).
+//           '#weight' => 10,
+//         ];
+
+//         // Add the manually defined tab to the primary tabs array.
+//         $data['tabs'][0][$plugin_id] = $tab_definition;
+
+//         // Add the necessary cacheability metadata from the target route's access check.
+//         $access_manager = \Drupal::service('access_manager');
+//         $account = \Drupal::currentUser();
+//         // Create a RouteMatch object using the constructor.
+//         $target_route_match = new RouteMatch(
+//           $target_route_name, // Route name
+//           $target_route,      // Route object
+//           $parameters,        // Resolved parameters (Drupal resolves entities from raw)
+//           $parameters         // Raw parameters
+//         );
+//         // **FIX:** Use the check() method instead of access().
+//         // The 4th argument TRUE returns the AccessResult object.
+//         $access_result = $access_manager->check($target_route_match, $account, NULL, TRUE);
+//         // Add the access result's cacheability metadata to the hook's cacheability.
+//         $cacheability->addCacheableDependency($access_result);
+
+//         // Ensure the tab's visibility also depends on the route context itself.
+//         $cacheability->addCacheTags(['route_match']);
+
+//         // Optional: Sort tabs by weight after adding.
+//         // uasort($data['tabs'][0], '\Drupal\Component\Utility\SortArray::sortByWeightElement');
+//       } // End if ($target_route && !empty($parameters['user']))
+//     } // End if (!isset($data['tabs'][0][$plugin_id]))
+//   } // End if ($route_name == 'entity.user.edit_form')
+// }
+
+// Include other hooks for the module if necessary (e.g., hook_install, hook_uninstall).
+
+/**
+ * Helper function to get the URL of the configured default user picture.
+ *
+ * @return string
+ * The URL of the default picture, or an empty string if not configured.
+ */
+function _user_match_get_default_picture_url()
+{
+  // The default image is stored in the user.settings configuration.
+  $config = \Drupal::config('user.settings');
+  $default_fid = $config->get('picture.default');
+
+  // If a default file ID (fid) is set in the config...
+  if (!empty($default_fid)) {
+    // ...load the file entity.
+    $file = File::load($default_fid);
+    if ($file) {
+      // And return its public URL.
+      return $file->createFileUrl(FALSE);
+    }
+  }
+
+  // Return an empty string as a final fallback.
+  return '';
+}
+
+/**
+ * Implements hook_preprocess_HOOK() for the main card deck.
+ */
+function user_match_preprocess_user_match_page_deck(&$variables)
+{
+  // Get the configured default picture URL using our helper function.
+  $variables['default_picture_url'] = _user_match_get_default_picture_url();
+}
+
+/**
+ * Implements hook_preprocess_HOOK() for the single AJAX-loaded card.
+ */
+function user_match_preprocess_user_match_single_card(&$variables)
+{
+  // Reuse the same helper function for the single card template.
+  $variables['default_picture_url'] = _user_match_get_default_picture_url();
+}
+
+/**
+ * Implements hook_entity_bundle_field_info_alter().
+ */
+function user_match_entity_bundle_field_info_alter(&$fields, EntityTypeInterface $entity_type, $bundle)
+{
+  if ($entity_type->id() === 'user' && isset($fields['field_birthday'])) { // Target user entity and your field
+    $fields['field_birthday']->addConstraint('Age');
+  }
+}
+
+function user_match_entity_type_build(array &$entity_types) {
+  if (isset($entity_types['user'])) {
+    $entity_types['user']->setFormClass('privacy_settings', 'Drupal\user\ProfileForm');
+  }
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter() for the user form.
+ */
+function user_match_form_user_form_alter(&$form, FormStateInterface $form_state, $form_id)
+{
+  // Get the form object to check which form mode is being used.
+  $form_object = $form_state->getFormObject();
+
+  // Ensure we are altering the user form in 'privacy_settings' mode.
+  if ($form_object->getOperation() === 'privacy_settings') {
+
+    // Check if the two fields exist before applying states.
+    if (isset($form['field_share_my_location'])) {
+
+      if(!isset($form['field_user_address'])) {
+        \Drupal::messenger()->addWarning(
+          'Address is not set!'
+        );
+      }
+    }
+  }
+}

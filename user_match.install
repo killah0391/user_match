@@ -1,0 +1,75 @@
+<?php
+
+/**
+ * @file
+ * Install, update and uninstall functions for the user_match module.
+ */
+
+use Drupal\Core\Database\Schema\Schema;
+use Drupal\Core\Database\Database;
+
+/**
+ * Implements hook_schema().
+ */
+function user_match_schema()
+{
+  $schema['user_match_actions'] = [
+    'description' => 'Stores like/dislike actions between users.',
+    'fields' => [
+      'action_id' => [
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'description' => 'Primary key for the action.',
+      ],
+      'liker_uid' => [
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => "The user ID of the user performing the action.",
+      ],
+      'liked_uid' => [
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => "The user ID of the user being liked/disliked.",
+      ],
+      // 1 = like, 0 = dislike
+      'action' => [
+        'type' => 'int',
+        'size' => 'tiny',
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => 'The action taken (1 for like, 0 for dislike).',
+      ],
+      'created' => [
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => 'Timestamp when the action was created.',
+      ],
+    ],
+    'primary key' => ['action_id'],
+    'unique keys' => [
+      'user_pair' => ['liker_uid', 'liked_uid'], // Prevent duplicate actions for the same pair
+    ],
+    'indexes' => [
+      'liker_action' => ['liker_uid', 'action'],
+      'liked_action' => ['liked_uid', 'action'],
+    ],
+  ];
+
+  return $schema;
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function user_match_uninstall()
+{
+  $schema = Database::getConnection()->schema();
+  $schema->dropTable('user_match_actions');
+}

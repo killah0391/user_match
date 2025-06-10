@@ -1,0 +1,23 @@
+# Defines local tasks (tabs) for the User Match module.
+
+# Explicitly define the default 'Edit' tab.
+# Even though this is the base route, defining it can help ensure the tab set renders.
+user_match.user_edit_tab:
+  route_name: entity.user.edit_form # Route for the main user edit page
+  title: 'Account settings' # Standard title for the edit tab
+  parent_id: entity.user.edit_form # It's based on itself
+  weight: -10 # Ensure it appears before other custom tabs
+
+# Defines the 'Matching' tab on the user edit page.
+user_match.user_settings_tab:
+  route_name: user_match.user_settings_form # Route defined in .routing.yml
+  title: 'Matching preferences' # Text shown on the tab
+  parent_id: entity.user.edit_form # Parent route where the tab appears
+  weight: 10 # Optional: controls order relative to other tabs
+
+user_match.privacy_settings_tab:
+  route_name: user_match.privacy_settings
+  title: 'Privacy Settings'
+  base_route: entity.user.canonical
+  parent_id: entity.user.edit_form
+  weight: 10

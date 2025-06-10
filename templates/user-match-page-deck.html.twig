@@ -1,0 +1,67 @@
+{# templates/user_match_page_deck.html.twig #}
+{{kint(picture_uri.uri.value)}}
+<div class="user-match-deck-container">
+	{% if potential_match_users %}
+		<div class="user-match-card-stack">
+			{% for key, user in potential_match_users|reverse %}
+				{# Reverse so first user is on top #}
+{% set picture_url = user.user_picture.entity ? file_url(user.user_picture.entity.getFileUri()) : default_picture_url %}
+
+				{# The 'loop.last' check makes the first user (now last due to reverse) active #}
+				<div
+					class="card user-match-card text-white shadow-lg {% if loop.last %}is-active{% endif %}" data-uid="{{ user.id() }}" data-like-url="{{ url('user_match.like_user', {'user_liked': user.id}) }}" data-dislike-url="{{ url('user_match.dislike_user', {'user_disliked': user.id}) }}" style="background-image: url('{{ picture_url }}');">
+
+					{# Add an overlay #}
+					<div class="card-overlay"></div>
+
+					<div class="card-body d-flex flex-column justify-content-end text-center">
+						<h5 class="card-title h3">{{ user.getDisplayName() }}</h5>
+						<div
+							class="user-match-actions d-flex justify-content-center gap-3 mt-3">
+							{# Buttons can still be here as fallback or visual cues #}
+							<button class="btn btn-light btn-lg rounded-circle action-dislike">
+								<i class="bi bi-x-circle text-secondary"></i>
+							</button>
+<a href="{{ url('user_match.user_details_ajax', {'user_to_view': user.id}) }}" {# Add Bootstrap button classes AND the required JS/AJAX classes #} class="btn btn-light btn-lg rounded-circle action-details user-details-modal-trigger use-ajax" title="{{ 'Details'|t }}" aria-label="{{ 'Details'|t }}">
+	<i class="bi bi-eye text-primary"></i>
+</a>
+
+							<button class="btn btn-light btn-lg rounded-circle action-like">
+								<i class="bi bi-arrow-through-heart text-danger"></i>
+							</button>
+						</div>
+					</div>
+				</div>
+			{% endfor %}
+		</div>
+	{% elseif message %}
+		<div class="alert alert-info">{{ message }}</div>
+	{% endif %}
+	<div id="user-match-no-more-cards" class="alert alert-warning" style="display: none;">{{ 'No more users, check back later!'|t }}</div>
+</div>
+
+{# Ensure your Modal HTML structure is present somewhere (as provided before or in your theme) #}
+{# Example Bootstrap 5 Modal Structure #}
+	<div class="modal fade" id="userMatchDetailsModal" tabindex="-1" aria-labelledby="userMatchDetailsModalLabel" aria-hidden="true"> <div
+		class="modal-dialog modal-dialog-centered">
+		{# Added modal-dialog-centered #}
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title" id="userMatchDetailsModalLabel">User Details</h5>
+				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+			</div>
+			<div class="modal-body">
+				<div data-drupal-selector="user-match-modal-spinner" class="text-center">
+					<div class="spinner-border" role="status">
+						<span class="visually-hidden">Loading...</span>
+					</div>
+				</div>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+

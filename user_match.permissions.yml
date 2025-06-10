@@ -1,0 +1,9 @@
+access user match:
+  title: 'Access the user matching page'
+  description: 'Allows users to view and interact with the user matching interface.'
+view own user match actions:
+  title: 'View own like/dislike actions'
+  description: 'Allows users to see who they have liked or disliked (e.g., via Views).'
+view user matches:
+  title: 'View own user matches'
+  description: 'Allows users to see who they have matched with (mutual likes).'

@@ -1,0 +1,218 @@
+/**
+ * @file
+ * user-match-styles.css
+ *
+ * Styles for the User Match card deck interface.
+ */
+
+/* Main container for the card deck */
+.user-match-deck-container {
+  display: flex;
+  justify-content: center;
+  /* Center the stack horizontally */
+  align-items: center;
+  /* Center the stack vertically */
+  padding: 20px;
+  min-height: 600px;
+  /* Ensure enough height to see the stack */
+  overflow: hidden;
+  /* Hide cards when they animate far off-screen */
+  width: 100%;
+}
+
+/* The stack itself - defines size and holds the cards */
+.user-match-card-stack {
+  position: relative;
+  width: 90vw;
+  /* Responsive width */
+  max-width: 350px;
+  /* Max width for larger screens */
+  height: 500px;
+  /* Fixed height for the cards */
+}
+
+/* Individual user card styling */
+.user-match-card {
+  position: absolute !important;
+  /* Stack them on top of each other */
+  top: 0;
+  left: 0;
+  width: 100% !important;
+  height: 100% !important;
+  border-radius: 15px;
+  /* Nice rounded corners */
+  background-size: cover;
+  background-position: center center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  /* Deeper shadow */
+  transition: transform 0.4s ease, opacity 0.4s ease;
+  /* Smooth transitions */
+  cursor: grab;
+  /* Indicate it's draggable */
+  will-change: transform, opacity;
+  /* Hint for browser performance */
+  opacity: 0;
+  /* Hidden by default; JS/CSS will show stacked cards */
+  transform: translateY(20px) scale(0.95);
+  /* Default "underneath" position */
+  z-index: 1;
+  /* Default z-index */
+  overflow: hidden;
+  /* Ensure content like overlay fits radius */
+  display: flex;
+  /* Use flex for content layout */
+  flex-direction: column;
+  justify-content: flex-end;
+  /* Align content to the bottom */
+  /* Add this for pseudo-elements positioning */
+  position: relative;
+}
+
+/* Like (Green) and Dislike (Red) Overlays using Pseudo-elements */
+.user-match-card::before,
+.user-match-card::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-radius: 15px;
+  /* Match card radius */
+  z-index: 5;
+  /* Sit above image/overlay, below text/buttons */
+  pointer-events: none;
+  /* Make sure they don't block clicks/drags */
+  opacity: 0;
+  /* Hidden by default, controlled by JS via CSS vars */
+  transition: opacity 0.1s ease-out;
+  /* Slight fade when not dragging */
+}
+
+/* Like (Green) Overlay */
+.user-match-card::before {
+  background-color: rgb(91, 127, 91);
+  /* Decent Green */
+  opacity: var(--like-opacity, 0);
+  /* Controlled by JS */
+}
+
+/* Dislike (Red) Overlay */
+.user-match-card::after {
+  background-color: #c24646;
+  /* Decent Red */
+  opacity: var(--dislike-opacity, 0);
+  /* Controlled by JS */
+}
+
+
+.ajax-progress {
+  display: none;
+}
+
+.ajax-progress .throbber {
+  display: none;
+}
+
+.ajax-progress-bar {
+  display: none;
+  width: 0 !important;
+}
+
+/* Overlay for better text readability on images */
+.user-match-card .card-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(to top,
+      rgba(0, 0, 0, 0.85) 0%,
+      rgba(0, 0, 0, 0) 70%);
+  border-radius: 15px;
+  /* Match card radius */
+  z-index: 2;
+  /* Sits above background, below content */
+}
+
+/* Card content (text, buttons) */
+.user-match-card .card-body {
+  position: relative;
+  /* Ensure it's above the overlay */
+  z-index: 6;
+  /* Ensure it's above the like/dislike overlays */
+  padding: 20px;
+  color: white;
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.7);
+}
+
+.user-match-card .card-title {
+  margin-bottom: 15px;
+}
+
+/* Styling for the visible stack (top 3 cards) */
+.user-match-card.is-active {
+  transform: translateY(0) scale(1);
+  /* Top card position */
+  opacity: 1;
+  /* Fully visible */
+  z-index: 10;
+  /* Highest base z-index */
+  cursor: grab;
+}
+
+.user-match-card.is-next {
+  transform: translateY(10px) scale(0.95);
+  /* Second card position */
+  opacity: 1;
+  /* Visible */
+  z-index: 9;
+  /* Below active */
+}
+
+.user-match-card.is-after-next {
+  transform: translateY(20px) scale(0.9);
+  /* Third card position */
+  opacity: 1;
+  /* Visible */
+  z-index: 8;
+  /* Below next */
+}
+
+/* While dragging */
+.user-match-card.is-dragging {
+  transition: none;
+  /* No transition while dragging for direct feedback */
+  cursor: grabbing;
+  /* Indicate active dragging */
+  z-index: 11;
+  /* <-- Ensure it's on top while dragging */
+}
+
+/* Styles for animating out (swiped) */
+.user-match-card.is-swiped-left {
+  transform: translateX(-150%) rotate(-45deg) !important;
+  /* Fly left and rotate */
+  opacity: 0;
+  z-index: 11;
+  /* <-- Ensure it stays on top while animating */
+}
+
+.user-match-card.is-swiped-right {
+  transform: translateX(150%) rotate(45deg) !important;
+  /* Fly right and rotate */
+  opacity: 0;
+  z-index: 11;
+  /* <-- Ensure it stays on top while animating */
+}
+
+/* Style for the "No more cards" message (initially hidden) */
+#user-match-no-more-cards {
+  display: none;
+  margin: 20px auto;
+  text-align: center;
+}
+
+.chosen-container {
+  display: block !important;
+}

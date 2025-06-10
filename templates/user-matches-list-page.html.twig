@@ -1,0 +1,119 @@
+{#
+/**
+ * @file
+ * Theme implementation for the user matches list page.
+ *
+ * Available variables:
+ * - matches: An array of user entity objects who are mutual matches with the
+ * current user.
+ *
+ * User object properties (examples):
+ * - match.name.value: Username
+ * - match.mail.value: Email (use with care for privacy)
+ * - match.uid.value: User ID
+ * - match.created.value: Timestamp of account creation
+ * - match.field_real_name.value: Custom field 'Real Name'
+ * - match.user_picture: Render array for user picture (if enabled)
+ * Use {{ kint(match) }} (with Devel module enabled) to inspect available fields.
+ */
+#}
+
+<h2>{{ 'Your Mutual Matches'|t }}</h2>
+
+{% if matches is not empty %}
+	<ul class="user-matches-list">
+		{% for match in matches %}
+			<li class="user-match-item">
+				<div
+					class="user-match-item__picture">
+					{# Display User Picture if available #}
+					{% if match.user_picture is not empty %}
+						{{ match.user_picture }}
+					{% else %}
+						{# Placeholder or default image if needed #}
+						<div class="user-match-item__picture--placeholder">{{ 'No picture'|t }}</div>
+					{% endif %}
+				</div>
+				<div class="user-match-item__details">
+					<h3>
+						{# Link username to the user's profile page #}
+						<a href="{{ url('entity.user.canonical', {'user': match.id}) }}">
+							{{ match.getDisplayName() }}
+							{# Use getDisplayName() for flexibility #}
+						</a>
+					</h3>
+					{# Add other details you want to display about the matched user #}
+				{# Example: Member since #}
+					{# <p class="user-match-item__member-since">{{ 'Member since'|t }} {{ match.created.value|format_date('medium') }}</p> #}
+
+					{# Example: Custom field (check if exists) #}
+					{# {% if match.field_location is not empty and match.field_location.value is not empty %}
+					            <p class="user-match-item__location">{{ match.field_location.value }}</p>
+					          {% endif %} #}
+
+					{# You could add a link to message the user if you have a messaging module #}
+				</div>
+			</li>
+		{% endfor %}
+	</ul>
+{% else %}
+	<p>{{ 'You have no mutual matches yet. Keep liking users!'|t }}</p>
+{% endif %}
+
+{# Add some basic styling (ideally in your theme's CSS) #}
+<style>
+	.user-matches-list {
+		list-style: none;
+		padding: 0;
+		margin: 0;
+	}
+	.user-match-item {
+		display: flex;
+		align-items: center;
+		border: 1px solid #e0e0e0;
+		padding: 15px;
+		margin-bottom: 15px;
+		border-radius: 4px;
+		background-color: #f9f9f9;
+	}
+	.user-match-item__picture {
+		flex-shrink: 0;
+		margin-right: 15px;
+	}
+	.user-match-item__picture img {
+		border-radius: 50%;
+		max-width: 60px; /* Adjust size */
+		height: auto;
+		display: block;
+	}
+	.user-match-item__picture--placeholder {
+		width: 60px;
+		height: 60px;
+		background-color: #ccc;
+		border-radius: 50%;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		font-size: 0.8em;
+		color: #666;
+	}
+	.user-match-item__details {
+		flex-grow: 1;
+	}
+	.user-match-item__details h3 {
+		margin-top: 0;
+		margin-bottom: 5px;
+	}
+	.user-match-item__details h3 a {
+		text-decoration: none;
+		color: #007bff; /* Example link color */
+	}
+	.user-match-item__details h3 a:hover {
+		text-decoration: underline;
+	}
+	.user-match-item__details p {
+		margin: 0.25em 0;
+		font-size: 0.9em;
+		color: #555;
+	}
+</style>

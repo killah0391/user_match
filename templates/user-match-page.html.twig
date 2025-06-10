@@ -1,0 +1,106 @@
+{# templates/user_match_page.html.twig #}
+
+{# Use Bootstrap's container for proper alignment and padding #}
+	<div class="container mt-4"> {# mt-4 adds some margin on top #}
+	{#
+	    Use a row with Bootstrap's flex utilities.
+	    'd-flex' makes it a flex container.
+	    'justify-content-center' centers its children horizontally.
+	  #}
+		<div
+		class="row d-flex justify-content-center"> {#
+			      Define the column width.
+			      'col-12' makes it full-width on extra-small screens.
+			      'col-sm-8' makes it 8/12 width on small screens.
+			      'col-md-5' makes it 5/12 width on medium screens.
+			      'col-lg-4' makes it 4/12 (1/3rd) width on large screens.
+			      Adjust these breakpoints (sm, md, lg) and widths (4, 5, 8) as needed.
+			    #}
+		<div class="col-12 col-sm-8 col-md-5 col-lg-4">
+
+			{% if potential_match_user %}
+				{% set picture_url = potential_match_user.user_picture.entity ? file_url(potential_match_user.user_picture.entity.uri.value) : '' %}
+
+				{#
+				          Use Bootstrap's 'card' class. Keep 'user-match-card' for custom styles.
+				          Set text color. Apply background via inline style.
+				        #}
+				<div
+class="card user-match-card text-white shadow-lg" data-like-url="{{ like_url }}"
+	     data-dislike-url="{{ dislike_url }}" style="min-height: 450px; background-size: cover; background-position: center; border: none; background-image:
+{% if picture_url %}url('{{ picture_url }}'){% else %}linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), url('/path/to/default/image.jpg')
+{% endif %};">
+
+
+					{# Custom overlay div (as BS overlay might conflict) #}
+					<div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0) 70%); z-index: 1; border-radius: var(--bs-card-border-radius);"></div>
+
+					{# Card body - push content to bottom using flex #}
+					<div class="card-body d-flex flex-column justify-content-end text-center" style="position: relative; z-index: 2;">
+						<h5 class="card-title h3">{{ potential_match_user.getDisplayName() }}</h5>
+						{# Add more details if wanted #}
+						{# <p class="card-text">Some brief info...</p> #}
+
+						{# Action buttons with Bootstrap classes and icons #}
+							<div
+							class="d-flex justify-content-center gap-3 mt-3"> {# gap-3 adds space #}
+							{% if like_url %}
+								<a href="{{ like_url }}" class="btn btn-light btn-lg rounded-circle use-ajax" title="{{ 'Like'|t }}" aria-label="{{ 'Like'|t }}">
+									<i class="bi bi-arrow-through-heart text-danger"></i>
+									{# Added text-danger for color #}
+								</a>
+							{% endif %}
+							{% if dislike_url %}
+								<a href="{{ dislike_url }}" class="btn btn-light btn-lg rounded-circle use-ajax" title="{{ 'Dislike'|t }}" aria-label="{{ 'Dislike'|t }}">
+									<i class="bi bi-x-circle text-secondary"></i>
+									{# Added text-secondary #}
+								</a>
+							{% endif %}
+							{% if details_url %}
+								<a href="{{ details_url }}" class="btn btn-light btn-lg rounded-circle user-details-modal-trigger use-ajax" title="{{ 'Details'|t }}" aria-label="{{ 'Details'|t }}">
+									<i class="bi bi-eye text-primary"></i>
+									{# Added text-primary #}
+								</a>
+							{% endif %}
+						</div>
+					</div>
+				</div>
+				{# /card #}
+
+			{% elseif message %}
+				{# Message if no users found, centered within a column #}
+				<div class="col-12 text-center">
+					<div class="alert alert-info">{{ message }}</div>
+				</div>
+			{% endif %}
+
+		</div>
+		{# /col #}
+	</div>
+	{# /row #}
+</div>
+{# /container #}
+
+{# Ensure your Modal HTML structure is present somewhere (as provided before or in your theme) #}
+{# Example Bootstrap 5 Modal Structure #}
+	<div class="modal fade" id="userMatchDetailsModal" tabindex="-1" aria-labelledby="userMatchDetailsModalLabel" aria-hidden="true"> <div
+		class="modal-dialog modal-dialog-centered">
+		{# Added modal-dialog-centered #}
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title" id="userMatchDetailsModalLabel">User Details</h5>
+				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+			</div>
+			<div class="modal-body">
+				<div data-drupal-selector="user-match-modal-spinner" class="text-center">
+					<div class="spinner-border" role="status">
+						<span class="visually-hidden">Loading...</span>
+					</div>
+				</div>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+			</div>
+		</div>
+	</div>
+</div>

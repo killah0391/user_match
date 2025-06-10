@@ -1,0 +1,63 @@
+{#
+/**
+ * @file
+ * Theme implementation for the content inside the user details Bootstrap modal.
+ *
+ * Renders the profile details of the specified user. This content replaces
+ * the spinner inside the modal body via AJAX ReplaceCommand.
+ *
+ * Available variables:
+ * - user_profile: The user entity object whose details are being displayed.
+ */
+#}
+{# Wrapper div for the modal content - this replaces the spinner div #}
+<div class="user-match-modal-details">
+  {% if user_profile %}
+    {# Display User Picture if available, centered #}
+    {% if user_profile.user_picture is not empty %}
+       <div class="user-picture-modal text-center mb-3">
+         {# Apply Bootstrap image classes if desired, e.g., img-thumbnail rounded-circle #}
+<img class="rounded-2"  src="{{ file_url(user_profile.user_picture.entity.uri.value) }}" style="width:50px;height:50px;"/>
+
+
+       </div>
+    {% endif %}
+
+    {# Basic user information #}
+    <p><strong>{{ 'Username:'|t }}</strong> {{ user_profile.getDisplayName() }}</p>
+    <p><strong>{{ 'Member Since:'|t }}</strong> {{ user_profile.created.value|format_date('medium') }}</p> {# Format date #}
+    <p><strong>{{ 'Gender:'|t }}</strong> {{ user_profile.field_gender.value }}</p>
+
+    {# Display custom fields - Add checks for existence and access control #}
+    {# Example: Real Name #}
+    {% if user_profile.field_real_name is not empty and user_profile.field_real_name.value is not empty %}
+      <p><strong>{{ 'Name:'|t }}</strong> {{ user_profile.field_real_name.value }}</p>
+    {% endif %}
+
+    {# Example: Location #}
+    {% if user_profile.field_location is not empty and user_profile.field_location.value is not empty %}
+      <p><strong>{{ 'Location:'|t }}</strong> {{ user_profile.field_location.value }}</p>
+    {% endif %}
+
+    {# Example: About Me (potentially long text) #}
+    {% if user_profile.field_about_me is not empty and user_profile.field_about_me.value is not empty %}
+      <div class="mb-3"> {# Add margin #}
+          <strong>{{ 'About Me:'|t }}</strong>
+          {# Display the value. Use text utilities for formatting/wrapping. #}
+          {# Use |raw filter ONLY if you trust the HTML content in this field. #}
+          {# Otherwise, let Twig autoescape it or use a specific filter like |striptags. #}
+          <div class="border p-2 mt-1 bg-light rounded text-break">{{ user_profile.field_about_me.value|raw }}</div>
+      </div>
+    {% endif %}
+
+    {# Add more fields here as required, following the pattern: #}
+    {# Check if field exists and has value -> Display label and value #}
+    {# {% if user_profile.field_interests is not empty %}
+      <p><strong>{{ 'Interests:'|t }}</strong> {{ user_profile.field_interests.value }}</p>
+    {% endif %} #}
+
+  {% else %}
+    {# Fallback message if user_profile object is not available #}
+    <div class="alert alert-warning">{{ 'User details could not be loaded.'|t }}</div>
+  {% endif %}
+</div> {# End user-match-modal-details #}

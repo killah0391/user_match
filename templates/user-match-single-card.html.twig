@@ -1,0 +1,37 @@
+{# templates/user_match_single_card.html.twig (Safer Version) #}
+{% if user and user.id() %}
+	{# Ensure 'user' is a valid object with an ID #}
+
+	{# --- Safely get picture URL --- #}
+	{% set picture_url = '' %}
+	{# Check if the field exists AND is not empty AND has an entity #}
+		{% if user.user_picture is defined and user.user_picture is not empty and user.user_picture.entity %}
+{% set picture_url = user.user_picture.entity ? file_url(user.user_picture.entity.getFileUri()) : default_picture_url %}
+
+	{% endif %}
+	{# --- End Safe Picture URL --- #}
+
+		<div class="card user-match-card text-white shadow-lg" data-uid="{{ user.id() }}" data-like-url="{{ url('user_match.like_user', {'user_liked': user.id}) }}" data-dislike-url="{{ url('user_match.dislike_user', {'user_disliked': user.id}) }}" {# Added a fallback background color in case image fails #} style="background-color: #444; {% if picture_url %}background-image: url('{{ picture_url }}');{% endif %}"> <div class="card-overlay"></div>
+
+		<div
+			class="card-body d-flex flex-column justify-content-end text-center">
+			{# Use 'default' filter for safety #}
+			<h5 class="card-title h3">{{ user.getDisplayName()|default('User ' ~ user.id()) }}</h5>
+			<div class="user-match-actions d-flex justify-content-center gap-3 mt-3">
+				<button class="btn btn-light btn-lg rounded-circle action-dislike" title="{{ 'Dislike'|t }}">
+					<i class="bi bi-x-circle text-secondary"></i>
+				</button>
+				<a href="{{ url('user_match.user_details_ajax', {'user_to_view': user.id}) }}" class="btn btn-light btn-lg rounded-circle action-details user-details-modal-trigger use-ajax" title="{{ 'Details'|t }}">
+					<i class="bi bi-eye text-primary"></i>
+				</a>
+				<button class="btn btn-light btn-lg rounded-circle action-like" title="{{ 'Like'|t }}">
+					<i class="bi bi-arrow-through-heart text-danger"></i>
+				</button>
+			</div>
+		</div>
+	</div>
+{% else %}
+	<div style="border: 2px solid red; padding: 10px; background: white; color: black;">
+		Error: Could not render user card. User object invalid.
+	</div>
+{% endif %}
