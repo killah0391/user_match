@@ -270,22 +270,22 @@ function user_match_entity_type_build(array &$entity_types) {
 /**
  * Implements hook_form_FORM_ID_alter() for the user form.
  */
-function user_match_form_user_form_alter(&$form, FormStateInterface $form_state, $form_id)
-{
-  // Get the form object to check which form mode is being used.
-  $form_object = $form_state->getFormObject();
+// function user_match_form_user_form_alter(&$form, FormStateInterface $form_state, $form_id)
+// {
+//   // Get the form object to check which form mode is being used.
+//   $form_object = $form_state->getFormObject();
 
-  // Ensure we are altering the user form in 'privacy_settings' mode.
-  if ($form_object->getOperation() === 'privacy_settings') {
+//   // Ensure we are altering the user form in 'privacy_settings' mode.
+//   if ($form_object->getOperation() === 'privacy_settings') {
 
-    // Check if the two fields exist before applying states.
-    if (isset($form['field_share_my_location'])) {
+//     // Check if the two fields exist before applying states.
+//     if (isset($form['field_share_my_location'])) {
 
-      if(!isset($form['field_user_address'])) {
-        \Drupal::messenger()->addWarning(
-          'Address is not set!'
-        );
-      }
-    }
-  }
-}
+//       if(!isset($form['field_user_address'])) {
+//         \Drupal::messenger()->addWarning(
+//           'Address is not set!'
+//         );
+//       }
+//     }
+//   }
+// }
